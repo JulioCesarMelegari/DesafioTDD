@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.devsuperior.bds02.dto.CityDTO;
@@ -22,6 +23,13 @@ public class CityService {
 	private CityRepository repository;
 	
 	@Transactional(readOnly = true)
+	public CityDTO findById(Long id){
+		City result = repository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Cidade não cadastrada"));
+		return new CityDTO(result);
+	}
+	
+	@Transactional(readOnly = true)
 	public List<CityDTO> findAll(){
 		List<City> result = repository.findAll(Sort.by("name"));
 		return result.stream().map(x -> new CityDTO(x)).toList();
@@ -35,9 +43,10 @@ public class CityService {
 		return new CityDTO(entity);
 	}
 	
+	@Transactional(propagation = Propagation.SUPPORTS)
 	public void delete(Long id) {
 		if(!repository.existsById(id)) {
-			throw new ResourceNotFoundException("Recurso não encontrado");
+			throw new ResourceNotFoundException("Cidade não cadastrada");
 		}
 		try {
 			repository.deleteById(id);
